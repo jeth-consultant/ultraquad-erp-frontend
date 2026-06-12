@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/api/api_endpoints.dart';
 import '../../../core/api/token_storage.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
@@ -62,10 +63,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> signup({
     required String fullName,
+    required String phone,
     required String email,
     required String password,
+    required String githubUsername,
   }) async {
-    // TODO: call ApiEndpoints.signup via _apiClient.
+    await _apiClient.guard(
+      () => _apiClient.dio.post(
+        ApiEndpoints.register,
+        data: {
+          'name': fullName,
+          'phone': phone,
+          'email': email,
+          'password': password,
+          'github_username': githubUsername,
+        },
+      ),
+      (data) => data,
+    );
   }
 
   Future<void> forgotPassword({required String email}) async {
