@@ -8,7 +8,7 @@ import '../../core/theme/app_text_styles.dart';
 import 'providers/auth_provider.dart';
 
 /// Registration form: posts a new account to /auth/register and shows a
-/// toast on success.
+/// toast on success. Laid out to fit a single screen without scrolling.
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
@@ -73,126 +73,177 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  InputDecoration _decoration(String hint, {Widget? suffixIcon}) {
+    return InputDecoration(
+      hintText: hint,
+      isDense: true,
+      suffixIcon: suffixIcon,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Brand(),
-                const SizedBox(height: 32),
-                Text('Create your account', style: AppTextStyles.heading1),
-                const SizedBox(height: 4),
-                Text(
-                  "Join your team's accountability ledger.",
-                  style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 24),
-                _FieldLabel('Full name'),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(hintText: 'Jane Doe'),
-                  textInputAction: TextInputAction.next,
-                  validator: (value) =>
-                      (value == null || value.trim().isEmpty) ? 'Full name is required' : null,
-                ),
-                const SizedBox(height: 16),
-                _FieldLabel('Phone number'),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(hintText: '+254 7XX XXX XXX'),
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) =>
-                      (value == null || value.trim().isEmpty) ? 'Phone number is required' : null,
-                ),
-                const SizedBox(height: 16),
-                _FieldLabel('GitHub username'),
-                TextFormField(
-                  controller: _githubController,
-                  decoration: const InputDecoration(hintText: 'janedoe'),
-                  textInputAction: TextInputAction.next,
-                  validator: (value) =>
-                      (value == null || value.trim().isEmpty) ? 'GitHub username is required' : null,
-                ),
-                const SizedBox(height: 16),
-                _FieldLabel('Email'),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(hintText: 'you@team.com'),
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Email is required';
-                    if (!value.contains('@')) return 'Enter a valid email';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _FieldLabel('Password'),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: '••••••••',
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  MediaQuery.of(context).padding.bottom -
+                  40,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  const _Brand(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Create your account', style: AppTextStyles.heading2),
+                      const SizedBox(height: 2),
+                      Text(
+                        "Join your team's accountability ledger.",
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                  _FieldLabel('Full name'),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: _decoration('Jane Doe'),
+                    textInputAction: TextInputAction.next,
+                    validator: (value) =>
+                        (value == null || value.trim().isEmpty) ? 'Full name is required' : null,
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _FieldLabel('Phone number'),
+                            TextFormField(
+                              controller: _phoneController,
+                              decoration: _decoration('+254 7XX XXX XXX'),
+                              keyboardType: TextInputType.phone,
+                              textInputAction: TextInputAction.next,
+                              validator: (value) => (value == null || value.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _FieldLabel('GitHub username'),
+                            TextFormField(
+                              controller: _githubController,
+                              decoration: _decoration('janedoe'),
+                              textInputAction: TextInputAction.next,
+                              validator: (value) => (value == null || value.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _FieldLabel('Email'),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: _decoration('you@team.com'),
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Email is required';
+                          if (!value.contains('@')) return 'Enter a valid email';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _FieldLabel('Password'),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: _decoration(
+                          '••••••••',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                              size: 18,
+                            ),
+                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.done,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return 'Password is required';
+                          if (value.length < 8) return 'Password must be at least 8 characters';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: _isSubmitting ? null : _submit,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Text('Create account', style: AppTextStyles.button),
                     ),
                   ),
-                  textInputAction: TextInputAction.done,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Password is required';
-                    if (value.length < 8) return 'Password must be at least 8 characters';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navy,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        style: AppTextStyles.body,
+                        children: [
+                          const TextSpan(text: 'Already have an account? '),
+                          TextSpan(
+                            text: 'Sign in',
+                            style: const TextStyle(color: AppColors.teal, fontWeight: FontWeight.bold),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => Navigator.of(context).pop(),
+                          ),
+                        ],
                       ),
                     ),
-                    onPressed: _isSubmitting ? null : _submit,
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Create account', style: AppTextStyles.button),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      style: AppTextStyles.body,
-                      children: [
-                        const TextSpan(text: 'Already have an account? '),
-                        TextSpan(
-                          text: 'Sign in',
-                          style: const TextStyle(color: AppColors.teal, fontWeight: FontWeight.bold),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -209,8 +260,8 @@ class _FieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(label, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(label, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)),
     );
   }
 }
@@ -223,16 +274,16 @@ class _Brand extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
             color: AppColors.navy,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: const Icon(Icons.bolt, color: Colors.white, size: 20),
+          child: const Icon(Icons.bolt, color: Colors.white, size: 16),
         ),
-        const SizedBox(width: 12),
-        Text('UltraQuad ERP', style: AppTextStyles.heading2),
+        const SizedBox(width: 10),
+        Text('UltraQuad ERP', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold, fontSize: 15)),
       ],
     );
   }
