@@ -1,51 +1,62 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'api_endpoints.dart';
+import 'env_config.dart';
 
-/// Builds full request URLs by combining [ApiEndpoints.baseUrl] with each
-/// endpoint path. Use these getters wherever a complete URL is needed
-/// (e.g. Dio requests, CSV download links).
+/// Builds full request URLs by combining a base URL (from `.env`) with
+/// each endpoint path. Obtain an instance via [urlHelperProvider] so the
+/// base URL is resolved through Riverpod rather than hardcoded.
 class UrlHelper {
-  UrlHelper._();
+  const UrlHelper(this.baseUrl);
 
-  static String _build(String path) => '${ApiEndpoints.baseUrl}$path';
+  final String baseUrl;
+
+  String _build(String path) => '$baseUrl$path';
 
   // Auth
-  static String get register => _build(ApiEndpoints.register);
-  static String get login => _build(ApiEndpoints.login);
-  static String get refreshToken => _build(ApiEndpoints.refreshToken);
-  static String get logout => _build(ApiEndpoints.logout);
-  static String get forgotPassword => _build(ApiEndpoints.forgotPassword);
-  static String get verifyOtp => _build(ApiEndpoints.verifyOtp);
-  static String get resetPassword => _build(ApiEndpoints.resetPassword);
-  static String get me => _build(ApiEndpoints.me);
+  String get register => _build(ApiEndpoints.register);
+  String get login => _build(ApiEndpoints.login);
+  String get refreshToken => _build(ApiEndpoints.refreshToken);
+  String get logout => _build(ApiEndpoints.logout);
+  String get forgotPassword => _build(ApiEndpoints.forgotPassword);
+  String get verifyOtp => _build(ApiEndpoints.verifyOtp);
+  String get resetPassword => _build(ApiEndpoints.resetPassword);
+  String get me => _build(ApiEndpoints.me);
 
   // Dashboard
-  static String get dashboardSummary => _build(ApiEndpoints.dashboardSummary);
+  String get dashboardSummary => _build(ApiEndpoints.dashboardSummary);
 
   // Contributions
-  static String get contributions => _build(ApiEndpoints.contributions);
+  String get contributions => _build(ApiEndpoints.contributions);
 
   // Fines
-  static String get fines => _build(ApiEndpoints.fines);
+  String get fines => _build(ApiEndpoints.fines);
 
   // Payments
-  static String get paymentsStkPush => _build(ApiEndpoints.paymentsStkPush);
-  static String get paymentsStatus => _build(ApiEndpoints.paymentsStatus);
-  static String get paymentsHistory => _build(ApiEndpoints.paymentsHistory);
+  String get paymentsStkPush => _build(ApiEndpoints.paymentsStkPush);
+  String get paymentsStatus => _build(ApiEndpoints.paymentsStatus);
+  String get paymentsHistory => _build(ApiEndpoints.paymentsHistory);
 
   // GitHub activity
-  static String get githubActivity => _build(ApiEndpoints.githubActivity);
+  String get githubActivity => _build(ApiEndpoints.githubActivity);
 
   // Notifications
-  static String get notifications => _build(ApiEndpoints.notifications);
-  static String get notificationsRegisterDevice =>
+  String get notifications => _build(ApiEndpoints.notifications);
+  String get notificationsRegisterDevice =>
       _build(ApiEndpoints.notificationsRegisterDevice);
 
   // Profile
-  static String get profile => _build(ApiEndpoints.profile);
+  String get profile => _build(ApiEndpoints.profile);
 
   // Admin
-  static String get adminMembers => _build(ApiEndpoints.adminMembers);
-  static String get adminSettings => _build(ApiEndpoints.adminSettings);
-  static String get adminBroadcasts => _build(ApiEndpoints.adminBroadcasts);
-  static String get adminCsvExport => _build(ApiEndpoints.adminCsvExport);
+  String get adminMembers => _build(ApiEndpoints.adminMembers);
+  String get adminSettings => _build(ApiEndpoints.adminSettings);
+  String get adminBroadcasts => _build(ApiEndpoints.adminBroadcasts);
+  String get adminCsvExport => _build(ApiEndpoints.adminCsvExport);
 }
+
+/// Riverpod-resolved [UrlHelper], built from [baseUrlProvider] so every
+/// endpoint URL ultimately derives from `.env`.
+final urlHelperProvider = Provider<UrlHelper>((ref) {
+  return UrlHelper(ref.watch(baseUrlProvider));
+});

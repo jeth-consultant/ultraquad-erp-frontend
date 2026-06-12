@@ -8,8 +8,9 @@ import '../models/dashboard_summary.dart';
 /// activity, notifications) from the backend.
 final dashboardSummaryProvider = FutureProvider<DashboardSummary>((ref) async {
   final apiClient = ref.watch(apiClientProvider);
+  final urlHelper = ref.watch(urlHelperProvider);
   return apiClient.guard(
-    () => apiClient.dio.get(UrlHelper.dashboardSummary),
+    () => apiClient.dio.get(urlHelper.dashboardSummary),
     (data) => DashboardSummary.fromJson(data as Map<String, dynamic>),
   );
 });

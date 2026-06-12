@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/placeholder_screen.dart';
+import 'register_screen.dart';
 
 /// First screen shown to a signed-out user: branding, tagline, feature
 /// highlights, and entry points to create an account or sign in.
@@ -55,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const PlaceholderScreen(title: 'Create account'),
+                        builder: (_) => const RegisterScreen(),
                       ),
                     );
                   },

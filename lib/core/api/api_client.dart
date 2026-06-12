@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api_endpoints.dart';
 import 'api_exception.dart';
+import 'env_config.dart';
 import 'token_storage.dart';
 
 /// Thin wrapper around [Dio] that attaches the access token to every
 /// request and transparently refreshes it on a 401 response.
 class ApiClient {
-  ApiClient({TokenStorage? tokenStorage})
+  ApiClient({required String baseUrl, TokenStorage? tokenStorage})
       : _tokenStorage = tokenStorage ?? TokenStorage(),
         dio = Dio(
           BaseOptions(
-            baseUrl: ApiEndpoints.baseUrl,
+            baseUrl: baseUrl,
             connectTimeout: const Duration(seconds: 15),
             receiveTimeout: const Duration(seconds: 15),
             headers: {'Content-Type': 'application/json'},
@@ -109,5 +110,8 @@ class ApiClient {
 final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(tokenStorage: ref.watch(tokenStorageProvider));
+  return ApiClient(
+    baseUrl: ref.watch(baseUrlProvider),
+    tokenStorage: ref.watch(tokenStorageProvider),
+  );
 });
