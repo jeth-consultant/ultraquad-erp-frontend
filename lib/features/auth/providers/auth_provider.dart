@@ -57,8 +57,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> login({required String email, required String password}) async {
-    // TODO: call ApiEndpoints.login via _apiClient, persist tokens via _tokenStorage.
-    state = state.copyWith(status: AuthStatus.authenticated);
+    final data = await _apiClient.guard(
+      () => _apiClient.dio.post(
+        ApiEndpoints.login,
+        data: {'email': email, 'password': password},
+      ),
+      (data) => data as Map<String, dynamic>,
+    );
+
+    await _tokenStorage.saveTokens(
+      accessToken: data['accessToken'] as String,
+      refreshToken: data['refreshToken'] as String,
+    );
+
+    final member = data['member'] as Map<String, dynamic>;
+    state = state.copyWith(
+      status: AuthStatus.authenticated,
+      userId: member['id'].toString(),
+      fullName: member['name'] as String?,
+      email: member['email'] as String?,
+      isAdmin: member['role'] == 'admin',
+    );
   }
 
   Future<void> signup({

@@ -4,230 +4,290 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/placeholder_screen.dart';
+import '../auth/providers/auth_provider.dart';
 import 'models/dashboard_summary.dart';
 import 'providers/dashboard_provider.dart';
 
-/// Home screen shown after login: quick stats + module cards.
-class DashboardScreen extends ConsumerWidget {
+/// Home screen shown after login: standing summary cards + bottom nav.
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  int _navIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final summaryAsync = ref.watch(dashboardSummaryProvider);
+    final summary = summaryAsync.valueOrNull ?? DashboardSummary.empty;
+    final fullName = ref.watch(authProvider).fullName ?? 'there';
+    final firstName = fullName.split(' ').first;
+    final unreadNotifications = summary.unreadNotifications;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('UltraQuad ERP')),
-      body: RefreshIndicator(
-        onRefresh: () => ref.refresh(dashboardSummaryProvider.future),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text('Overview', style: AppTextStyles.heading2),
-            const SizedBox(height: 12),
-            _SummaryRow(
-              summary: summaryAsync.valueOrNull ?? DashboardSummary.empty,
-            ),
-            const SizedBox(height: 24),
-            Text('Modules', style: AppTextStyles.heading2),
-            const SizedBox(height: 12),
-            _ModuleGrid(unreadNotifications: summaryAsync.valueOrNull?.unreadNotifications ?? 0),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.summary});
-
-  final DashboardSummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            label: 'Contributions',
-            value: 'KES ${summary.totalContributions.toStringAsFixed(0)}',
-            color: AppColors.teal,
-            icon: Icons.link,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _SummaryCard(
-            label: 'Outstanding Fines',
-            value: 'KES ${summary.outstandingFines.toStringAsFixed(0)}',
-            color: AppColors.red,
-            icon: Icons.notifications_active_outlined,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        titleSpacing: 16,
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 12),
-            Text(value, style: AppTextStyles.heading2),
-            const SizedBox(height: 4),
-            Text(label, style: AppTextStyles.caption),
+            Text(
+              'ULTRAQUAD ERP',
+              style: AppTextStyles.caption.copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
+              ),
+            ),
+            Text('Welcome, $firstName', style: AppTextStyles.heading2),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ModuleGrid extends StatelessWidget {
-  const _ModuleGrid({required this.unreadNotifications});
-
-  final int unreadNotifications;
-
-  @override
-  Widget build(BuildContext context) {
-    final modules = <_ModuleCardData>[
-      const _ModuleCardData(
-        title: 'Contributions',
-        icon: Icons.link,
-        color: AppColors.teal,
-      ),
-      const _ModuleCardData(
-        title: 'Fines',
-        icon: Icons.gavel_outlined,
-        color: AppColors.red,
-      ),
-      const _ModuleCardData(
-        title: 'Make Payment',
-        icon: Icons.shield_outlined,
-        color: AppColors.navy,
-      ),
-      const _ModuleCardData(
-        title: 'GitHub Sync',
-        icon: Icons.account_tree_outlined,
-        color: AppColors.green,
-      ),
-      _ModuleCardData(
-        title: 'Notifications',
-        icon: Icons.notifications_outlined,
-        color: AppColors.mint,
-        badgeCount: unreadNotifications,
-      ),
-      const _ModuleCardData(
-        title: 'Profile',
-        icon: Icons.person_outline,
-        color: AppColors.navy,
-      ),
-      const _ModuleCardData(
-        title: 'Admin',
-        icon: Icons.admin_panel_settings_outlined,
-        color: AppColors.teal,
-      ),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.2,
-      ),
-      itemCount: modules.length,
-      itemBuilder: (context, index) {
-        final module = modules[index];
-        return _ModuleCard(data: module);
-      },
-    );
-  }
-}
-
-class _ModuleCardData {
-  const _ModuleCardData({
-    required this.title,
-    required this.icon,
-    required this.color,
-    this.badgeCount = 0,
-  });
-
-  final String title;
-  final IconData icon;
-  final Color color;
-  final int badgeCount;
-}
-
-class _ModuleCard extends StatelessWidget {
-  const _ModuleCard({required this.data});
-
-  final _ModuleCardData data;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => PlaceholderScreen(title: data.title),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Stack(
+        actions: [
+          Stack(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(data.icon, color: data.color, size: 28),
-                  const SizedBox(height: 12),
-                  Text(data.title, style: AppTextStyles.body),
-                ],
+              IconButton(
+                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PlaceholderScreen(title: 'Notifications')),
+                  );
+                },
               ),
-              if (data.badgeCount > 0)
+              if (unreadNotifications > 0)
                 Positioned(
-                  top: 0,
-                  right: 0,
+                  top: 8,
+                  right: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.red,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: AppColors.red, shape: BoxShape.circle),
                     child: Text(
-                      '${data.badgeCount}',
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                      '$unreadNotifications',
+                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
             ],
           ),
+          Padding(
+            padding: const EdgeInsets.only(right: 16, left: 4),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.navy,
+              child: const Icon(Icons.person_outline, color: Colors.white, size: 18),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Here's your standing today.", style: AppTextStyles.body.copyWith(color: AppColors.teal)),
+              const SizedBox(height: 16),
+              _OutstandingFinesCard(amount: summary.outstandingFines),
+              const SizedBox(height: 16),
+              _UnpaidContributionsCard(
+                amount: summary.totalContributions,
+                missedMonths: summary.missedMonths,
+              ),
+            ],
+          ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _navIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.navy,
+        unselectedItemColor: AppColors.textSecondary,
+        onTap: (index) {
+          if (index == 0) {
+            setState(() => _navIndex = index);
+            return;
+          }
+          final titles = ['Home', 'Paybill', 'GitHub', 'Fines'];
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => PlaceholderScreen(title: titles[index])),
+          );
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Paybill'),
+          BottomNavigationBarItem(icon: Icon(Icons.code_rounded), label: 'GitHub'),
+          BottomNavigationBarItem(icon: Icon(Icons.warning_amber_rounded), label: 'Fines'),
+        ],
+      ),
+    );
+  }
+}
+
+class _OutstandingFinesCard extends StatelessWidget {
+  const _OutstandingFinesCard({required this.amount});
+
+  final double amount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.red.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.red.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.red.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.warning_amber_rounded, color: AppColors.red),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'OUTSTANDING FINES',
+                    style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.6),
+                  ),
+                  Text(
+                    'KES ${amount.toStringAsFixed(0)}',
+                    style: AppTextStyles.heading1.copyWith(fontSize: 24),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PlaceholderScreen(title: 'Fines')),
+              );
+            },
+            child: Text(
+              'View & pay fines →',
+              style: AppTextStyles.body.copyWith(color: AppColors.red, fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UnpaidContributionsCard extends StatelessWidget {
+  const _UnpaidContributionsCard({required this.amount, required this.missedMonths});
+
+  final double amount;
+  final List<MissedMonth> missedMonths;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.textPrimary),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'UNPAID CONTRIBUTIONS',
+                    style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.6),
+                  ),
+                  Text(
+                    'KES ${amount.toStringAsFixed(0)}',
+                    style: AppTextStyles.heading1.copyWith(fontSize: 24),
+                  ),
+                  Text(
+                    '${missedMonths.length} month${missedMonths.length == 1 ? '' : 's'} missed',
+                    style: AppTextStyles.caption,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (missedMonths.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 12),
+            Text(
+              'MISSED MONTHS',
+              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.6),
+            ),
+            const SizedBox(height: 8),
+            ...missedMonths.map(
+              (month) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.red),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(month.label, style: AppTextStyles.body)),
+                    Text(
+                      'KES ${month.amount.toStringAsFixed(0)}',
+                      style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PlaceholderScreen(title: 'Contributions')),
+              );
+            },
+            child: Text(
+              'Go to contributions →',
+              style: AppTextStyles.body.copyWith(color: AppColors.navy, fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
+        ],
       ),
     );
   }
