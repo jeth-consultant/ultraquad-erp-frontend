@@ -1,11 +1,10 @@
-/// Base configuration and endpoint paths for the Ultraquad ERP API.
+/// Endpoint paths for the Ultraquad ERP API.
+///
+/// The base URL (host/port) is intentionally not defined here — it is
+/// loaded from the `.env` file via [baseUrlProvider] so it never appears
+/// as a hardcoded value in source.
 class ApiEndpoints {
   ApiEndpoints._();
-
-  /// Local backend (Express) running on port 4000.
-  /// - Android emulator: use 10.0.2.2 instead of localhost.
-  /// - iOS simulator / desktop / web: localhost works.
-  static const String baseUrl = 'http://localhost:4000/api';
 
   // Auth
   static const String register = '/auth/register';
