@@ -5,23 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import 'login_screen.dart';
+import '../dashboard/dashboard_screen.dart';
 import 'providers/auth_provider.dart';
+import 'register_screen.dart';
 
-/// Registration form: posts a new account to /auth/register and shows a
-/// toast on success. Laid out to fit a single screen without scrolling.
-class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+/// Sign-in form: posts credentials to /auth/login and shows a toast on
+/// success. Laid out to fit a single screen without scrolling.
+class LoginScreen extends ConsumerStatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _githubController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -30,9 +28,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _githubController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -43,23 +38,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(authProvider.notifier).signup(
-            fullName: _nameController.text.trim(),
-            phone: _phoneController.text.trim(),
+      await ref.read(authProvider.notifier).login(
             email: _emailController.text.trim(),
             password: _passwordController.text,
-            githubUsername: _githubController.text.trim(),
           );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Account created successfully!'),
+          content: const Text('Signed in successfully!'),
           backgroundColor: AppColors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        (route) => false,
+      );
     } on ApiException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,58 +103,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Create your account', style: AppTextStyles.heading2),
+                      Text('Welcome back', style: AppTextStyles.heading2),
                       const SizedBox(height: 2),
                       Text(
-                        "Join your team's accountability ledger.",
+                        'Sign in to keep your streak going.',
                         style: AppTextStyles.caption,
-                      ),
-                    ],
-                  ),
-                  _FieldLabel('Full name'),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: _decoration('Jane Doe'),
-                    textInputAction: TextInputAction.next,
-                    validator: (value) =>
-                        (value == null || value.trim().isEmpty) ? 'Full name is required' : null,
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _FieldLabel('Phone number'),
-                            TextFormField(
-                              controller: _phoneController,
-                              decoration: _decoration('+254 7XX XXX XXX'),
-                              keyboardType: TextInputType.phone,
-                              textInputAction: TextInputAction.next,
-                              validator: (value) => (value == null || value.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _FieldLabel('GitHub username'),
-                            TextFormField(
-                              controller: _githubController,
-                              decoration: _decoration('janedoe'),
-                              textInputAction: TextInputAction.next,
-                              validator: (value) => (value == null || value.trim().isEmpty)
-                                  ? 'Required'
-                                  : null,
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
@@ -200,7 +148,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         textInputAction: TextInputAction.done,
                         validator: (value) {
                           if (value == null || value.isEmpty) return 'Password is required';
-                          if (value.length < 8) return 'Password must be at least 8 characters';
                           return null;
                         },
                       ),
@@ -224,7 +171,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Create account', style: AppTextStyles.button),
+                          : const Text('Sign in', style: AppTextStyles.button),
                     ),
                   ),
                   Column(
@@ -234,14 +181,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           text: TextSpan(
                             style: AppTextStyles.body,
                             children: [
-                              const TextSpan(text: 'Already have an account? '),
+                              const TextSpan(text: 'New here? '),
                               TextSpan(
-                                text: 'Sign in',
+                                text: 'Create account',
                                 style: const TextStyle(color: AppColors.teal, fontWeight: FontWeight.bold),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
                                     );
                                   },
                               ),
