@@ -103,7 +103,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> forgotPassword({required String email}) async {
-    // TODO: call ApiEndpoints.forgotPassword via _apiClient.
+    await _apiClient.guard(
+      () => _apiClient.dio.post(
+        ApiEndpoints.forgotPassword,
+        data: {'email': email},
+      ),
+      (data) => data,
+    );
+  }
+
+  Future<void> verifyOtp({required String email, required String otp}) async {
+    await _apiClient.guard(
+      () => _apiClient.dio.post(
+        ApiEndpoints.verifyOtp,
+        data: {'email': email, 'otp': otp},
+      ),
+      (data) => data,
+    );
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    await _apiClient.guard(
+      () => _apiClient.dio.post(
+        ApiEndpoints.resetPassword,
+        data: {'email': email, 'otp': otp, 'password': password},
+      ),
+      (data) => data,
+    );
   }
 
   Future<void> logout() async {
