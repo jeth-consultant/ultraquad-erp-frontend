@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/placeholder_screen.dart';
 import '../auth/providers/auth_provider.dart';
+import '../profile/profile_screen.dart';
 import 'models/dashboard_summary.dart';
 import 'providers/dashboard_provider.dart';
 
@@ -76,10 +77,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16, left: 4),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.navy,
-              child: const Icon(Icons.person_outline, color: Colors.white, size: 18),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+              child: const CircleAvatar(
+                radius: 16,
+                backgroundColor: AppColors.navy,
+                child: Icon(Icons.person_outline, color: Colors.white, size: 18),
+              ),
             ),
           ),
         ],
