@@ -40,6 +40,7 @@ class ApiEndpoints {
 
   // Profile
   static const String profile = '/profile';
+  static const String profileDeviceToken = '/profile/device-token';
 
   // Admin
   static const String adminMembers = '/admin/members';

@@ -47,6 +47,7 @@ class UrlHelper {
 
   // Profile
   String get profile => _build(ApiEndpoints.profile);
+  String get profileDeviceToken => _build(ApiEndpoints.profileDeviceToken);
 
   // Admin
   String get adminMembers => _build(ApiEndpoints.adminMembers);
