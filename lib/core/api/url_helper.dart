@@ -19,41 +19,34 @@ class UrlHelper {
   String get refreshToken => _build(ApiEndpoints.refreshToken);
   String get logout => _build(ApiEndpoints.logout);
   String get forgotPassword => _build(ApiEndpoints.forgotPassword);
+  String get sendOtp => _build(ApiEndpoints.sendOtp);
   String get verifyOtp => _build(ApiEndpoints.verifyOtp);
   String get resetPassword => _build(ApiEndpoints.resetPassword);
-  String get me => _build(ApiEndpoints.me);
-
-  // Dashboard
-  String get dashboardSummary => _build(ApiEndpoints.dashboardSummary);
-
-  // Contributions
-  String get contributions => _build(ApiEndpoints.contributions);
-
-  // Fines
-  String get fines => _build(ApiEndpoints.fines);
-
-  // Payments
-  String get paymentsStkPush => _build(ApiEndpoints.paymentsStkPush);
-  String get paymentsStatus => _build(ApiEndpoints.paymentsStatus);
-  String get paymentsHistory => _build(ApiEndpoints.paymentsHistory);
-
-  // GitHub activity
-  String get githubActivity => _build(ApiEndpoints.githubActivity);
-
-  // Notifications
-  String get notifications => _build(ApiEndpoints.notifications);
-  String get notificationsRegisterDevice =>
-      _build(ApiEndpoints.notificationsRegisterDevice);
 
   // Profile
-  String get profile => _build(ApiEndpoints.profile);
-  String get profileDeviceToken => _build(ApiEndpoints.profileDeviceToken);
+  String get me => _build(ApiEndpoints.me);
+  String get meDeviceToken => _build(ApiEndpoints.meDeviceToken);
 
-  // Admin
-  String get adminMembers => _build(ApiEndpoints.adminMembers);
-  String get adminSettings => _build(ApiEndpoints.adminSettings);
-  String get adminBroadcasts => _build(ApiEndpoints.adminBroadcasts);
-  String get adminCsvExport => _build(ApiEndpoints.adminCsvExport);
+  // Contributions
+  String get myContributions => _build(ApiEndpoints.myContributions);
+
+  // Fines
+  String get myFines => _build(ApiEndpoints.myFines);
+
+  // Notifications
+  String get myNotifications => _build(ApiEndpoints.myNotifications);
+  String myNotificationRead(int id) =>
+      _build(ApiEndpoints.myNotificationRead(id));
+  String get myNotificationsReadAll =>
+      _build(ApiEndpoints.myNotificationsReadAll);
+
+  // Push days
+  String get myPushDays => _build(ApiEndpoints.myPushDays);
+
+  // Payments
+  String get paymentsInitiate => _build(ApiEndpoints.paymentsInitiate);
+  String paymentStatus(String checkoutRequestId) =>
+      _build(ApiEndpoints.paymentStatus(checkoutRequestId));
 }
 
 /// Riverpod-resolved [UrlHelper], built from [baseUrlProvider] so every
