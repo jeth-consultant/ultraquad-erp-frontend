@@ -1,8 +1,15 @@
 /// Endpoint paths for the Ultraquad ERP API.
 ///
-/// The base URL (host/port) is intentionally not defined here — it is
-/// loaded from the `.env` file via [baseUrlProvider] so it never appears
-/// as a hardcoded value in source.
+/// The base URL (host/port, including the `/api` prefix) is intentionally
+/// not defined here — it is loaded from the `.env` file via
+/// [baseUrlProvider] so it never appears as a hardcoded value in source.
+///
+/// Paths below mirror the backend's actual mounted routers
+/// (see `src/app.ts` in the backend repo):
+///   /api/auth     -> authRouter
+///   /api/me       -> profileRouter (profile, contributions, fines,
+///                    notifications, push-days for the signed-in member)
+///   /api/payments -> paymentsRouter
 class ApiEndpoints {
   ApiEndpoints._();
 
@@ -12,39 +19,30 @@ class ApiEndpoints {
   static const String refreshToken = '/auth/refresh';
   static const String logout = '/auth/logout';
   static const String forgotPassword = '/auth/forgot-password';
+  static const String sendOtp = '/auth/send-otp';
   static const String verifyOtp = '/auth/verify-otp';
   static const String resetPassword = '/auth/reset-password';
-  static const String me = '/auth/me';
 
-  // Dashboard
-  static const String dashboardSummary = '/dashboard/summary';
+  // Profile (GET/PATCH the signed-in member)
+  static const String me = '/me';
+  static const String meDeviceToken = '/me/device-token';
 
-  // Contributions
-  static const String contributions = '/contributions';
+  // Contributions (signed-in member's history)
+  static const String myContributions = '/me/contributions';
 
-  // Fines
-  static const String fines = '/fines';
+  // Fines (signed-in member's fines)
+  static const String myFines = '/me/fines';
 
-  // Payments
-  static const String paymentsStkPush = '/payments/stk-push';
-  static const String paymentsStatus = '/payments/status';
-  static const String paymentsHistory = '/payments/history';
+  // Notifications (signed-in member's notifications)
+  static const String myNotifications = '/me/notifications';
+  static String myNotificationRead(int id) => '/me/notifications/$id/read';
+  static const String myNotificationsReadAll = '/me/notifications/read-all';
 
-  // GitHub activity
-  static const String githubActivity = '/github/activity';
+  // Push days (signed-in member's GitHub push activity)
+  static const String myPushDays = '/me/push-days';
 
-  // Notifications
-  static const String notifications = '/notifications';
-  static const String notificationsRegisterDevice =
-      '/notifications/register-device';
-
-  // Profile
-  static const String profile = '/profile';
-  static const String profileDeviceToken = '/profile/device-token';
-
-  // Admin
-  static const String adminMembers = '/admin/members';
-  static const String adminSettings = '/admin/settings';
-  static const String adminBroadcasts = '/admin/broadcasts';
-  static const String adminCsvExport = '/admin/export';
+  // Payments (M-Pesa STK push)
+  static const String paymentsInitiate = '/payments/initiate';
+  static String paymentStatus(String checkoutRequestId) =>
+      '/payments/$checkoutRequestId/status';
 }

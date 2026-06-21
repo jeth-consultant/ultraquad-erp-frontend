@@ -18,7 +18,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<Profile>> {
     state = const AsyncValue.loading();
     try {
       final profile = await _apiClient.guard(
-        () => _apiClient.dio.get(_urlHelper.profile),
+        () => _apiClient.dio.get(_urlHelper.me),
         (data) => Profile.fromJson(data as Map<String, dynamic>),
       );
       state = AsyncValue.data(profile);
@@ -34,7 +34,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<Profile>> {
   }) async {
     final profile = await _apiClient.guard(
       () => _apiClient.dio.patch(
-        _urlHelper.profile,
+        _urlHelper.me,
         data: {
           'name': ?name,
           'email': ?email,
@@ -53,7 +53,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<Profile>> {
   }) async {
     await _apiClient.guard(
       () => _apiClient.dio.post(
-        _urlHelper.profileDeviceToken,
+        _urlHelper.meDeviceToken,
         data: {'token': token, 'platform': platform},
       ),
       (data) => data,

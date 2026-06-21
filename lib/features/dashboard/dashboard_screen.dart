@@ -3,33 +3,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/widgets/placeholder_screen.dart';
 import '../auth/providers/auth_provider.dart';
+import '../auth/welcome_screen.dart';
+import '../contributions/contributions_screen.dart';
+import '../fines/fines_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../notifications/providers/notifications_provider.dart';
+import '../payments/payment_screen.dart';
 import '../profile/profile_screen.dart';
-import 'models/dashboard_summary.dart';
-import 'providers/dashboard_provider.dart';
+import '../push_days/push_days_screen.dart';
 
-/// Home screen shown after login: standing summary cards + bottom nav.
-class DashboardScreen extends ConsumerStatefulWidget {
+/// Home screen shown after login: a menu of the app's sections rather
+/// than a card-based summary.
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  @override
-  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
-}
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    await ref.read(authProvider.notifier).logout();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (route) => false,
+    );
+  }
 
-class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  int _navIndex = 0;
-
   @override
-  Widget build(BuildContext context) {
-    final summaryAsync = ref.watch(dashboardSummaryProvider);
-    final summary = summaryAsync.valueOrNull ?? DashboardSummary.empty;
+  Widget build(BuildContext context, WidgetRef ref) {
     final fullName = ref.watch(authProvider).fullName ?? 'there';
     final firstName = fullName.split(' ').first;
-    final unreadNotifications = summary.unreadNotifications;
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
@@ -50,252 +55,161 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
         actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PlaceholderScreen(title: 'Notifications')),
-                  );
-                },
-              ),
-              if (unreadNotifications > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: AppColors.red, shape: BoxShape.circle),
-                    child: Text(
-                      '$unreadNotifications',
-                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: AppColors.textPrimary),
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
+            },
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16, left: 4),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              },
-              child: const CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.navy,
-                child: Icon(Icons.person_outline, color: Colors.white, size: 18),
-              ),
-            ),
-          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Here's your standing today.", style: AppTextStyles.body.copyWith(color: AppColors.teal)),
-              const SizedBox(height: 16),
-              _OutstandingFinesCard(amount: summary.outstandingFines),
-              const SizedBox(height: 16),
-              _UnpaidContributionsCard(
-                amount: summary.totalContributions,
-                missedMonths: summary.missedMonths,
+          children: [
+            Text('What would you like to do?', style: AppTextStyles.body.copyWith(color: AppColors.teal)),
+            const SizedBox(height: 16),
+            _MenuTile(
+              icon: Icons.account_balance_wallet_outlined,
+              iconColor: AppColors.teal,
+              title: 'My Contributions',
+              subtitle: 'View your monthly contribution history',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ContributionsScreen()),
               ),
-            ],
-          ),
+            ),
+            _MenuTile(
+              icon: Icons.warning_amber_rounded,
+              iconColor: AppColors.red,
+              title: 'My Fines',
+              subtitle: 'View and pay outstanding fines',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const FinesScreen()),
+              ),
+            ),
+            _MenuTile(
+              icon: Icons.code_rounded,
+              iconColor: AppColors.navy,
+              title: 'Push Days',
+              subtitle: 'Track your daily GitHub push activity',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PushDaysScreen()),
+              ),
+            ),
+            _MenuTile(
+              icon: Icons.payments_outlined,
+              iconColor: AppColors.green,
+              title: 'Make a Payment',
+              subtitle: 'Pay via M-Pesa STK push',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PaymentScreen()),
+              ),
+            ),
+            _MenuTile(
+              icon: Icons.notifications_none_rounded,
+              iconColor: AppColors.mint,
+              iconBackground: AppColors.navy,
+              title: 'Notifications',
+              subtitle: 'Payment receipts, fines, and announcements',
+              badgeCount: unreadCount,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+              ),
+            ),
+            _MenuTile(
+              icon: Icons.person_outline,
+              iconColor: AppColors.navy,
+              title: 'Profile',
+              subtitle: 'View and edit your account details',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _MenuTile(
+              icon: Icons.logout_rounded,
+              iconColor: AppColors.red,
+              title: 'Log out',
+              subtitle: 'Sign out of your account',
+              onTap: () => _logout(context, ref),
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _navIndex,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.navy,
-        unselectedItemColor: AppColors.textSecondary,
-        onTap: (index) {
-          if (index == 0) {
-            setState(() => _navIndex = index);
-            return;
-          }
-          final titles = ['Home', 'Paybill', 'GitHub', 'Fines'];
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => PlaceholderScreen(title: titles[index])),
-          );
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Paybill'),
-          BottomNavigationBarItem(icon: Icon(Icons.code_rounded), label: 'GitHub'),
-          BottomNavigationBarItem(icon: Icon(Icons.warning_amber_rounded), label: 'Fines'),
-        ],
-      ),
     );
   }
 }
 
-class _OutstandingFinesCard extends StatelessWidget {
-  const _OutstandingFinesCard({required this.amount});
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.iconBackground,
+    this.badgeCount = 0,
+  });
 
-  final double amount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.red.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.red.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.red.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.warning_amber_rounded, color: AppColors.red),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'OUTSTANDING FINES',
-                    style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.6),
-                  ),
-                  Text(
-                    'KES ${amount.toStringAsFixed(0)}',
-                    style: AppTextStyles.heading1.copyWith(fontSize: 24),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PlaceholderScreen(title: 'Fines')),
-              );
-            },
-            child: Text(
-              'View & pay fines →',
-              style: AppTextStyles.body.copyWith(color: AppColors.red, fontWeight: FontWeight.w600, fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UnpaidContributionsCard extends StatelessWidget {
-  const _UnpaidContributionsCard({required this.amount, required this.missedMonths});
-
-  final double amount;
-  final List<MissedMonth> missedMonths;
+  final IconData icon;
+  final Color iconColor;
+  final Color? iconBackground;
+  final String title;
+  final String subtitle;
+  final int badgeCount;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: (iconBackground ?? iconColor).withValues(alpha: iconBackground != null ? 1 : 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.textPrimary),
+                child: Icon(icon, color: iconColor, size: 22),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'UNPAID CONTRIBUTIONS',
-                    style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.6),
-                  ),
-                  Text(
-                    'KES ${amount.toStringAsFixed(0)}',
-                    style: AppTextStyles.heading1.copyWith(fontSize: 24),
-                  ),
-                  Text(
-                    '${missedMonths.length} month${missedMonths.length == 1 ? '' : 's'} missed',
-                    style: AppTextStyles.caption,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          if (missedMonths.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Divider(height: 1, color: AppColors.border),
-            const SizedBox(height: 12),
-            Text(
-              'MISSED MONTHS',
-              style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.6),
-            ),
-            const SizedBox(height: 8),
-            ...missedMonths.map(
-              (month) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: AppColors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.red),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(child: Text(month.label, style: AppTextStyles.body)),
-                    Text(
-                      'KES ${month.amount.toStringAsFixed(0)}',
-                      style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
-                    ),
+                    Text(title, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700, fontSize: 15)),
+                    const SizedBox(height: 2),
+                    Text(subtitle, style: AppTextStyles.caption),
                   ],
                 ),
               ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PlaceholderScreen(title: 'Contributions')),
-              );
-            },
-            child: Text(
-              'Go to contributions →',
-              style: AppTextStyles.body.copyWith(color: AppColors.navy, fontWeight: FontWeight.w600, fontSize: 13),
-            ),
+              if (badgeCount > 0)
+                Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: AppColors.red, borderRadius: BorderRadius.circular(20)),
+                  child: Text(
+                    '$badgeCount',
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
