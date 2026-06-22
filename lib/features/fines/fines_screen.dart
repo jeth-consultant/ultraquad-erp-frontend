@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_exception.dart';
+import '../../core/navigation/app_section.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/app_drawer.dart';
+import '../../core/widgets/soft_card.dart';
 import '../payments/payment_screen.dart';
 import 'models/fine.dart';
 import 'providers/fines_provider.dart';
@@ -20,6 +23,7 @@ class FinesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('My Fines')),
+      drawer: const AppDrawer(current: AppSection.fines),
       body: SafeArea(
         child: finesAsync.when(
           data: (fines) {
@@ -151,10 +155,8 @@ class _FineTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('KES ${fine.amount.toStringAsFixed(0)}', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
-              Text(
-                fine.status.toUpperCase(),
-                style: AppTextStyles.caption.copyWith(color: _statusColor, fontWeight: FontWeight.w700),
-              ),
+              const SizedBox(height: 4),
+              StatusBadge(label: fine.status, color: _statusColor),
             ],
           ),
         ],

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_exception.dart';
+import '../../core/navigation/app_section.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/app_drawer.dart';
 import '../contributions/providers/contributions_provider.dart';
 import '../fines/providers/fines_provider.dart';
 import 'models/payment.dart';
@@ -103,6 +105,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Make a Payment')),
+      drawer: const AppDrawer(current: AppSection.payments),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
