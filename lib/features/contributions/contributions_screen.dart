@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/api/api_exception.dart';
+import '../../core/navigation/app_section.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/widgets/app_drawer.dart';
 import 'models/contribution.dart';
 import 'providers/contributions_provider.dart';
 
@@ -19,6 +21,7 @@ class ContributionsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('My Contributions')),
+      drawer: const AppDrawer(current: AppSection.contributions),
       body: SafeArea(
         child: contributionsAsync.when(
           data: (contributions) {
